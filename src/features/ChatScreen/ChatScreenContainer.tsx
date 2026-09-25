@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   Chat,
   Conversation,
@@ -10,6 +10,7 @@ import { ConversationHeader } from './components/ConversationHeader';
 import { EmptyConversation } from './components/EmptyConversation';
 import { MessageComposer } from './components/MessageComposer';
 import { MessageList } from './components/MessageList';
+import { NavigationRail } from './components/NavigationRail';
 import { useCreateChat } from './hooks/useCreateChat';
 import { useMessageComposer } from './hooks/useMessageComposer';
 import './ChatScreen.css';
@@ -46,6 +47,11 @@ export const ChatScreenContainer = ({
   onConversationDelete,
 }: ChatScreenContainerProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [onlyUnread, setOnlyUnread] = useState(false);
+  const unreadCount = conversations.reduce(
+    (total, conversation) => total + conversation.unreadCount,
+    0,
+  );
   const {
     phoneNumber,
     newChatError,
@@ -72,9 +78,16 @@ export const ChatScreenContainer = ({
 
   return (
     <main className="app-shell chat-layout">
+      <NavigationRail
+        onlyUnread={onlyUnread}
+        unreadCount={unreadCount}
+        onFilterChange={setOnlyUnread}
+        onDisconnect={onDisconnect}
+      />
       <ChatSidebar
         credentials={credentials}
         conversations={conversations}
+        onlyUnread={onlyUnread}
         activeChatId={activeChat?.chatId}
         phoneNumber={phoneNumber}
         newChatError={newChatError}

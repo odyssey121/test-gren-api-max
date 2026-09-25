@@ -52,6 +52,20 @@ export const useConversations = (): UseConversationsResult => {
     }
   }, [activeChatId, conversations]);
 
+  useEffect(() => {
+    if (activeChatId === null) {
+      return;
+    }
+
+    setConversations((currentConversations) =>
+      currentConversations.map((conversation) =>
+        conversation.chat.chatId === activeChatId && conversation.unreadCount > 0
+          ? { ...conversation, unreadCount: 0 }
+          : conversation,
+      ),
+    );
+  }, [activeChatId]);
+
   const activateFirstChat = useCallback(() => {
     setActiveChatId((currentChatId) =>
       currentChatId ?? conversations[0]?.chat.chatId ?? null,
@@ -70,20 +84,27 @@ export const useConversations = (): UseConversationsResult => {
 
       if (existingConversation !== undefined) {
         return [
-          { ...existingConversation, chat },
+          { ...existingConversation, chat, unreadCount: 0 },
           ...currentConversations.filter(
             (conversation) => conversation.chat.chatId !== chat.chatId,
           ),
         ];
       }
 
-      return [{ chat, messages: [] }, ...currentConversations];
+      return [{ chat, messages: [], unreadCount: 0 }, ...currentConversations];
     });
     setActiveChatId(chat.chatId);
   }, []);
 
   const selectChat = useCallback((chatId: string) => {
     setActiveChatId(chatId);
+    setConversations((currentConversations) =>
+      currentConversations.map((conversation) =>
+        conversation.chat.chatId === chatId && conversation.unreadCount > 0
+          ? { ...conversation, unreadCount: 0 }
+          : conversation,
+      ),
+    );
   }, []);
 
   const addMessage = useCallback((chatId: string, message: Message) => {
@@ -115,31 +136,49 @@ export const useConversations = (): UseConversationsResult => {
   );
 
   const addPolledMessage = useCallback((chatId: string, message: Message) => {
-    setConversations((currentConversations) =>
-      currentConversations.map((conversation) => {
-        if (conversation.chat.chatId !== chatId) {
-          return conversation;
-        }
+    setConversations((currentConversations) => {
+      const existingConversation = currentConversations.find(
+        (conversation) => conversation.chat.chatId === chatId,
+      );
 
-        const alreadyExists = conversation.messages.some(
-          (currentMessage) => currentMessage.id === message.id,
-        );
+      if (existingConversation === undefined) {
+        const phoneNumber = chatId.split('@')[0].replace(/\D/g, '');
 
-        return alreadyExists
-          ? conversation
-          : {
+        return [{
+          chat: { chatId, phoneNumber },
+          messages: [message],
+          unreadCount: message.direction === 'incoming' ? 1 : 0,
+        }, ...currentConversations];
+      }
+
+      const alreadyExists = existingConversation.messages.some(
+        (currentMessage) => currentMessage.id === message.id,
+      );
+
+      if (alreadyExists) {
+        return currentConversations;
+      }
+
+      return currentConversations.map((conversation) =>
+        conversation.chat.chatId === chatId
+          ? {
               ...conversation,
               messages: [...conversation.messages, message],
-            };
-      }),
-    );
-  }, []);
+              unreadCount:
+                message.direction === 'incoming' && activeChatId !== chatId
+                  ? conversation.unreadCount + 1
+                  : conversation.unreadCount,
+            }
+          : conversation,
+      );
+    });
+  }, [activeChatId]);
 
   const clearConversation = useCallback((chatId: string) => {
     setConversations((currentConversations) =>
       currentConversations.map((conversation) =>
         conversation.chat.chatId === chatId
-          ? { ...conversation, messages: [] }
+          ? { ...conversation, messages: [], unreadCount: 0 }
           : conversation,
       ),
     );

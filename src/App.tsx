@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { ChatScreenContainer } from './features/ChatScreen/ChatScreenContainer';
 import { CredentialsForm } from './features/CredentialsForm/CredentialsForm';
@@ -10,6 +10,8 @@ import {
   type IncomingMessage,
   useGreenApiNotification,
 } from './shared/hooks/useNotifications';
+
+const APP_TITLE = 'Chat';
 
 export const App = () => {
   const [credentials, setCredentials] = useState<Credentials | null>(null);
@@ -26,6 +28,16 @@ export const App = () => {
     clearConversation,
     deleteConversation,
   } = useConversations();
+
+  const unreadChatsCount = conversations.filter(
+    (conversation) => conversation.unreadCount > 0,
+  ).length;
+
+  useEffect(() => {
+    document.title = unreadChatsCount > 0
+      ? `(${unreadChatsCount}) ${APP_TITLE}`
+      : APP_TITLE;
+  }, [unreadChatsCount]);
 
   const handleIncomingMessage = useCallback(
     (incomingMessage: IncomingMessage) => {

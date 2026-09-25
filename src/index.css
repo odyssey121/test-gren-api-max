@@ -1,11 +1,11 @@
 :root {
-  --page: #eef2f7;
+  --page: #ffffff;
   --surface: #ffffff;
   --line: #e4e9f0;
   --text: #17212d;
   --danger: #d94b4b;
   color: var(--text);
-  background: var(--page);
+  background: #fff;
 }
 
 * {

@@ -50,6 +50,10 @@ export const loadConversations = (): Conversation[] => {
 
     return parsed.filter(isConversation).map((conversation) => ({
       ...conversation,
+      unreadCount:
+        typeof conversation.unreadCount === 'number' && conversation.unreadCount > 0
+          ? conversation.unreadCount
+          : 0,
       messages: conversation.messages.map((message) =>
         message.status === 'sending'
           ? { ...message, status: 'failed' }

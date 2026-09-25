@@ -22,6 +22,7 @@ export interface Message {
 export interface Conversation {
   chat: Chat;
   messages: Message[];
+  unreadCount: number;
 }
 
 export interface NotificationTextData {
