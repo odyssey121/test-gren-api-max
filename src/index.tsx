@@ -1,19 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { MaxUI } from '@maxhub/max-ui';
+import '@maxhub/max-ui/dist/styles.css';
+import { App } from './App';
+import { notifyMaxAppReady } from './shared/maxBridge/maxBridge';
 import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const rootElement = document.getElementById('root');
+
+if (rootElement === null) {
+  throw new Error('Root element was not found');
+}
+
+notifyMaxAppReady();
+
+const root = ReactDOM.createRoot(rootElement);
+
 root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <MaxUI resetBody colorScheme="light">
+      <App />
+    </MaxUI>
+  </React.StrictMode>,
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
